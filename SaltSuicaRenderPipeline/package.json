@@ -1,0 +1,10 @@
+{
+  "name": "com.saltsuica.render-pipelines.suica",
+  "description": "suica render pipelines",
+  "version": "1.0.0",
+  "unity": "2022.2",
+  "displayName": "Suica Render Pipeline",
+  "dependencies": {
+    "com.unity.render-pipelines.core": "14.0.8"
+  }
+}
