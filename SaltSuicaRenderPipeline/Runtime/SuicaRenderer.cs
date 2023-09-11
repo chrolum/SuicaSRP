@@ -13,6 +13,8 @@ namespace Suica.Rendering.Runtime
 
         private const string rendererBufferName = "Suica Renderer";
         CommandBuffer cmd = new CommandBuffer {name = rendererBufferName};
+        
+        CullingResults cullingResults;
 
         public void Render(ScriptableRenderContext context, Camera camera)
         {
@@ -22,8 +24,9 @@ namespace Suica.Rendering.Runtime
 
             Setup();
             // Do culling
-            
+            Cull();
             // draw object
+            DrawGeometry();
 
             // draw skybox
             context.DrawSkybox(camera);
@@ -36,14 +39,30 @@ namespace Suica.Rendering.Runtime
 
         #region private method
 
-        private void Cull()
+        private bool Cull()
         {
-            
+            if (camera.TryGetCullingParameters(out ScriptableCullingParameters cullingParameters))
+            {
+                cullingResults =  context.Cull(ref cullingParameters);
+                return true;
+            }
+            return false;
         }
 
         private void DrawGeometry()
         {
+            // Setup drawing setting and filteringSetting
+            var sortingSettings = new SortingSettings(camera);
+            var drawingSettings = new DrawingSettings(new ShaderTagId("SuicaForward"), sortingSettings);
+            // drawingSettings.SetShaderPassName(1, new ShaderTagId("SuicaForwardPlus"));
+            var opaqueFilteringSettings = new FilteringSettings(RenderQueueRange.opaque);
+            var transparentFilteringSettings = new FilteringSettings(RenderQueueRange.transparent);
             
+            context.DrawRenderers(cullingResults, ref drawingSettings, ref opaqueFilteringSettings);
+            
+            sortingSettings.criteria = SortingCriteria.CommonTransparent;
+            drawingSettings.sortingSettings = sortingSettings;
+            context.DrawRenderers(cullingResults, ref drawingSettings, ref transparentFilteringSettings);
         }
         
         #endregion
